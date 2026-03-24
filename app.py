@@ -4,10 +4,13 @@ import sqlite3
 import plotly.express as px
 import os
 
-# --- 1. AUTOMATIC DATABASE SETUP FROM YOUR CSV ---
+# The exact name of your uploaded file
+FILE_NAME = "Stu data.xlsx - Sheet1.csv"
+
+# --- 1. AUTOMATIC DATABASE SETUP ---
 def init_db():
-    if os.path.exists("data.csv"):
-        df = pd.read_csv("data.csv")
+    if os.path.exists(FILE_NAME):
+        df = pd.read_csv(FILE_NAME)
         conn = sqlite3.connect('academy.db')
         c = conn.cursor()
         
@@ -36,7 +39,6 @@ def init_db():
         conn.commit()
         conn.close()
 
-# If the database doesn't exist, build it using the CSV
 if not os.path.exists('academy.db'):
     init_db()
 
@@ -52,9 +54,8 @@ def get_data(query):
 st.title("📱 Subject Analytics")
 
 if not os.path.exists('academy.db'):
-    st.error("Error: Could not build database. Is your data.csv file uploaded?")
+    st.error("Error: Could not build database. Is your CSV file uploaded?")
 else:
-    # Dropdown to select a student from your CSV
     students = get_data("SELECT name FROM students ORDER BY name ASC")
     choice = st.selectbox("Search Student Profile", students['name'].tolist())
 
@@ -72,10 +73,8 @@ else:
         if not df_history.empty:
             st.subheader(f"Performance Tracking: {choice}")
             
-            # Calculate Accuracy
             df_history['Accuracy %'] = (df_history['correct_count'] / (df_history['correct_count'] + df_history['incorrect_count'])) * 100
             
-            # Subject Lag Bar Chart
             fig = px.bar(df_history, x='exam_name', y='Accuracy %', 
                           title="Subject-Wise Accuracy",
                           labels={'exam_name': 'Test Name'},
